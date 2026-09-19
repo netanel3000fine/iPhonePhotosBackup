@@ -29,6 +29,16 @@ swiftc -parse-as-library \
 echo "=== Copying resources & plist ==="
 [ -f "Info.plist" ] && cp "Info.plist" "${APP_BUNDLE}/Contents/Info.plist"
 [ -f "AppIcon.icns" ] && cp "AppIcon.icns" "${APP_BUNDLE}/Contents/Resources/AppIcon.icns"
+[ -f "AppIcon-Dark.icns" ] && cp "AppIcon-Dark.icns" "${APP_BUNDLE}/Contents/Resources/AppIcon-Dark.icns"
+
+if which actool >/dev/null 2>&1 && actool --version >/dev/null 2>&1; then
+    echo "=== Compiling Asset Catalog with actool ==="
+    actool --compile "${APP_BUNDLE}/Contents/Resources" \
+           --platform macosx \
+           --minimum-deployment-target 15.0 \
+           --app-icon AppIcon \
+           Assets.xcassets 2>/dev/null || echo "Note: actool compilation skipped"
+fi
 
 for lproj in Sources/iPhonePhotosBackup/Resources/*.lproj; do
     [ -d "$lproj" ] && cp -r "$lproj" "${APP_BUNDLE}/Contents/Resources/"

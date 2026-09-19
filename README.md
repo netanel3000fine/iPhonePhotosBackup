@@ -1,4 +1,8 @@
-# iPhone Photos Backup 📸⚡
+<p align="center">
+  <img src="AppIcon.png" width="128" height="128" alt="iPhone Photos Backup Icon" />
+</p>
+
+<h1 align="center">iPhone Photos Backup 📸⚡</h1>
 
 <p align="center">
   <strong>The ultra-fast, privacy-first local backup and photo management utility for macOS.</strong><br>

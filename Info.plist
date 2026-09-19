@@ -14,6 +14,8 @@
     <string>1.0</string>
     <key>CFBundleIconFile</key>
     <string>AppIcon</string>
+    <key>CFBundleIconName</key>
+    <string>AppIcon</string>
     <key>NSCameraUsageDescription</key>
     <string>This app requires access to your connected iPhone to read and back up photos.</string>
     <key>NSRemovableVolumesUsageDescription</key>

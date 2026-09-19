@@ -530,6 +530,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSToolbarD
         setupMainMenu()
         configureNotifications()
         LaunchAtLoginManager.shared.cleanupLegacyLoginItem()
+        setupAppearanceObserver()
 
         // Apply in-app language preference (set by the Language picker in Settings)
         if let lang = UserDefaults.standard.string(forKey: "appLanguage"), !lang.isEmpty {
@@ -1445,6 +1446,52 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSToolbarD
             self.openDashboard()
         }
         completionHandler()
+    }
+
+    // MARK: - Dark Mode App Icon
+
+    private func setupAppearanceObserver() {
+        updateApplicationIconForCurrentAppearance()
+
+        DistributedNotificationCenter.default()
+            .publisher(for: NSNotification.Name("AppleInterfaceThemeChangedNotification"))
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.updateApplicationIconForCurrentAppearance()
+            }
+            .store(in: &cancellables)
+
+        NSApp.publisher(for: \.effectiveAppearance)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.updateApplicationIconForCurrentAppearance()
+            }
+            .store(in: &cancellables)
+    }
+
+    private func updateApplicationIconForCurrentAppearance() {
+        let isDark: Bool
+        if let best = NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) {
+            isDark = (best == .darkAqua)
+        } else {
+            isDark = NSApp.effectiveAppearance.name.rawValue.lowercased().contains("dark")
+        }
+
+        if isDark {
+            if let iconURL = Bundle.main.url(forResource: "AppIcon-Dark", withExtension: "icns") ??
+                             Bundle.main.url(forResource: "AppIcon-Dark", withExtension: "png"),
+               let image = NSImage(contentsOf: iconURL) {
+                NSApp.applicationIconImage = image
+            }
+        } else {
+            if let iconURL = Bundle.main.url(forResource: "AppIcon", withExtension: "icns") ??
+                             Bundle.main.url(forResource: "AppIcon", withExtension: "png"),
+               let image = NSImage(contentsOf: iconURL) {
+                NSApp.applicationIconImage = image
+            } else {
+                NSApp.applicationIconImage = nil
+            }
+        }
     }
 }
 
