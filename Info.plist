@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleExecutable</key>
+    <string>iPhonePhotosBackup</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.user.iPhonePhotosBackup</string>
+    <key>CFBundleName</key>
+    <string>iPhonePhotosBackup</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
+    <key>NSCameraUsageDescription</key>
+    <string>This app requires access to your connected iPhone to read and back up photos.</string>
+    <key>NSRemovableVolumesUsageDescription</key>
+    <string>This app requires access to connected external SSDs to store backups.</string>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>en</string>
+    <key>CFBundleLocalizations</key>
+    <array>
+        <string>en</string>
+        <string>he</string>
+    </array>
+</dict>
+</plist>
