@@ -527,6 +527,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSToolbarD
     // MARK: - App Lifecycle
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Start hidden from the Dock — show the Dock icon only when the window is open,
+        // exactly like RememberMyWindows. This allows the app to stay alive as a
+        // background process and observe system dark-mode changes at all times.
+        NSApp.setActivationPolicy(.accessory)
+
         setupMainMenu()
         configureNotifications()
         LaunchAtLoginManager.shared.cleanupLegacyLoginItem()
@@ -664,6 +669,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSToolbarD
                 }
             }
         }
+    }
+
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        // Keep the process alive so we can keep observing dark-mode changes and
+        // responding to USB-trigger launches — same pattern as RememberMyWindows.
+        return false
     }
 
     func applicationWillTerminate(_ notification: Notification) {
@@ -1333,6 +1344,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSToolbarD
             let window = NSWindow(contentViewController: controller)
 
             window.styleMask = [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView]
+            window.delegate = self
             window.titlebarAppearsTransparent = true
             window.titlebarSeparatorStyle = .none
             window.titleVisibility = .hidden
@@ -1417,10 +1429,20 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSToolbarD
         )
     }
 
-    func windowWillClose(_ notification: Notification) {
-        guard notification.object as? NSWindow === dashboardWindow else { return }
-        dashboardWindow = nil
-        NSApp.setActivationPolicy(.accessory)
+    @objc func windowWillClose(_ notification: Notification) {
+        let closingWindow = notification.object as? NSWindow
+        if closingWindow === dashboardWindow {
+            dashboardWindow = nil
+        } else if closingWindow === detailWindow {
+            detailWindow = nil
+        }
+        // Retreat to .accessory (background) if no user-facing windows remain open.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            let hasVisible = NSApp.windows.contains { $0.isVisible && !($0 is NSPanel) }
+            if !hasVisible {
+                NSApp.setActivationPolicy(.accessory)
+            }
+        }
     }
 
     // MARK: - UNUserNotificationCenterDelegate
@@ -1477,20 +1499,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSToolbarD
             isDark = NSApp.effectiveAppearance.name.rawValue.lowercased().contains("dark")
         }
 
-        if isDark {
-            if let iconURL = Bundle.main.url(forResource: "AppIcon-Dark", withExtension: "icns") ??
-                             Bundle.main.url(forResource: "AppIcon-Dark", withExtension: "png"),
-               let image = NSImage(contentsOf: iconURL) {
-                NSApp.applicationIconImage = image
-            }
-        } else {
-            if let iconURL = Bundle.main.url(forResource: "AppIcon", withExtension: "icns") ??
-                             Bundle.main.url(forResource: "AppIcon", withExtension: "png"),
-               let image = NSImage(contentsOf: iconURL) {
-                NSApp.applicationIconImage = image
-            } else {
-                NSApp.applicationIconImage = nil
-            }
+        let iconName = isDark ? "AppIcon-Dark" : "AppIcon"
+        if let iconURL = Bundle.main.url(forResource: iconName, withExtension: "icns") ??
+                         Bundle.main.url(forResource: iconName, withExtension: "png"),
+           let image = NSImage(contentsOf: iconURL) {
+            NSApp.applicationIconImage = image
+        } else if !isDark {
+            NSApp.applicationIconImage = nil
         }
     }
 }
